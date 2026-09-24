@@ -117,6 +117,7 @@
                     <h2 id="rsvp-title">RSVP</h2>
                     <p>We would be honored to have you join us.</p>
                     <p class="form-note">All registration fields are required.<br>Registration closes October 5, 2026.</p>
+                    <p class="attendance-summary" id="attendance-summary" aria-live="polite"><span id="attendance-count">&mdash;</span> guests registered <span aria-hidden="true">&bull;</span> <span id="attendance-status">Live registration total coming soon</span></p>
                 </div>
                 <div class="form-shell" id="form-shell">
                     <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSc9kzkzCOp3LEGZWpIb0BVPupW4dOy9AYtQWPXR6BqsrwkAlQ/viewform?embedded=true" title="Annual Intercultural Pastors Appreciation Dinner RSVP" loading="lazy"></iframe>
@@ -125,16 +126,6 @@
                     <span class="closed-mark" aria-hidden="true">&mdash;</span>
                     <h3>Registration is now closed.</h3>
                     <p>Thank you for your interest in the Annual Intercultural Pastors Appreciation Dinner.</p>
-                </div>
-            </div>
-        </section>
-
-        <section class="attendance-section" aria-labelledby="attendance-title">
-            <div class="container">
-                <div class="attendance-widget attendance-widget--pending" id="attendance-widget">
-                    <div><p class="section-kicker">Looking forward to welcoming you</p><h2 id="attendance-title">Expected Guests</h2></div>
-                    <div class="attendance-value" id="attendance-count" aria-live="polite" aria-label="Expected guests">&mdash;</div>
-                    <p id="attendance-status">Live registration total coming soon</p>
                 </div>
             </div>
         </section>
@@ -165,14 +156,14 @@
                     <p class="organizer-message" id="organizer-report-message" aria-live="polite"></p>
                     <div class="report-summary" aria-label="Registration summary">
                         <div><span>Total Registrations</span><strong id="report-registrations">&mdash;</strong></div>
-                        <div><span>Expected Guests</span><strong id="report-attendees">&mdash;</strong></div>
+                        <div><span>Guests</span><strong id="report-attendees">&mdash;</strong></div>
                         <div><span>Churches Represented</span><strong id="report-churches">&mdash;</strong></div>
                     </div>
                     <div class="report-table-wrap">
                         <table class="report-table">
                             <caption>Registration totals by church or organization</caption>
                             <thead>
-                                <tr><th scope="col">Church / Organization</th><th scope="col">Registrations</th><th scope="col">Expected Guests</th></tr>
+                                <tr><th scope="col">Church / Organization</th><th scope="col">Registrations</th><th scope="col">Guests</th></tr>
                             </thead>
                             <tbody id="report-table-body"></tbody>
                         </table>

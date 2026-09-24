@@ -122,7 +122,7 @@ function renderOrganizerReport(data) {
         registrationCell.textContent = String(group.registrations);
         attendeeCell.textContent = String(group.attendees);
         registrationCell.dataset.label = 'Registrations';
-        attendeeCell.dataset.label = 'Expected Guests';
+        attendeeCell.dataset.label = 'Guests';
         row.append(nameCell, registrationCell, attendeeCell);
         tableBody.append(row);
     });

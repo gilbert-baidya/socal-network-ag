@@ -123,13 +123,9 @@ h3 { font-size: 2rem; }
 .deadline-inner .section-kicker { color: var(--color-gold); }
 .deadline-inner > p { align-self: end; color: #e6d8c8; margin: 0; }
 
-/* 11. Attendance placeholder */
-.attendance-section { background: var(--color-ivory); padding: 3rem 0; }
-.attendance-widget { align-items: center; border: 1px solid var(--color-border); display: grid; gap: 1rem; padding: 1.5rem; }
-.attendance-widget h2 { font-size: 2rem; margin: 0; }
-.attendance-widget .section-kicker { margin-bottom: .45rem; }
-.attendance-value { color: var(--color-teal); font-family: var(--serif); font-size: 3.5rem; line-height: 1; }
-.attendance-widget > p { color: var(--color-muted); font-size: .8rem; margin: 0; }
+/* 11. RSVP attendance summary */
+.attendance-summary { color: var(--color-teal); font-size: .85rem !important; font-weight: 700; margin-top: 1rem; }
+.attendance-summary span:last-child { color: var(--color-muted); font-weight: 400; }
 
 /* 12. RSVP / Google Form */
 .rsvp-section { background: var(--color-paper); }
@@ -192,7 +188,6 @@ h3 { font-size: 2rem; }
     .poster-wrap { max-width: 500px; }
     .details-grid { grid-template-columns: .8fr 1.2fr; }
     .deadline-inner { align-items: center; grid-template-columns: 1fr auto; }
-    .attendance-widget { grid-template-columns: 1fr auto auto; padding: 1.6rem 2rem; }
     .footer-inner { align-items: center; grid-template-columns: 1fr 1.4fr auto; }
 }
 @media (min-width: 1024px) {
