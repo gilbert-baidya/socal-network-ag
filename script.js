@@ -218,7 +218,7 @@ async function handleOrganizerLogout() {
 
 function setupOrganizerAccess() {
     const dialog = document.querySelector('#organizer-dialog');
-    const accessButton = document.querySelector('#organizer-access-button');
+    const accessButtons = document.querySelectorAll('#organizer-access-button, .js-organizer-access');
     const closeButton = document.querySelector('#organizer-dialog-close');
     const loginForm = document.querySelector('#organizer-login-form');
     const passwordInput = document.querySelector('#organizer-password');
@@ -226,11 +226,13 @@ function setupOrganizerAccess() {
     const refreshButton = document.querySelector('#organizer-refresh');
     const logoutButton = document.querySelector('#organizer-logout');
 
-    if (!dialog || !accessButton || !closeButton || !loginForm) {
+    if (!dialog || !accessButtons.length || !closeButton || !loginForm) {
         return;
     }
 
-    accessButton.addEventListener('click', () => {
+    let activeAccessButton = accessButtons[0];
+    accessButtons.forEach((accessButton) => accessButton.addEventListener('click', () => {
+        activeAccessButton = accessButton;
         dialog.showModal();
         if (sessionStorage.getItem(ORGANIZER_SESSION_KEY)) {
             loadOrganizerReport();
@@ -238,7 +240,7 @@ function setupOrganizerAccess() {
             showOrganizerLogin();
         }
         document.querySelector('#organizer-login-id').focus();
-    });
+    }));
     closeButton.addEventListener('click', () => dialog.close());
     loginForm.addEventListener('submit', handleOrganizerLogin);
     passwordToggle.addEventListener('change', () => {
@@ -252,7 +254,7 @@ function setupOrganizerAccess() {
             dialog.close();
         }
     });
-    dialog.addEventListener('close', () => accessButton.focus());
+    dialog.addEventListener('close', () => activeAccessButton.focus());
 
     const existingToken = sessionStorage.getItem(ORGANIZER_SESSION_KEY);
     if (existingToken) {

@@ -51,6 +51,7 @@ h3 { font-size: 2rem; }
 .site-nav { align-items: center; display: flex; gap: 1.15rem; font-size: .76rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .site-nav a { text-decoration: none; }
 .nav-cta { border-bottom: 1px solid var(--color-bronze); color: var(--color-teal); padding: .65rem 0; }
+.site-nav-report { background: transparent; border: 0; border-bottom: 1px solid var(--color-border); color: var(--color-brown); cursor: pointer; font: inherit; letter-spacing: inherit; padding: .65rem 0; text-transform: inherit; }
 
 /* 6. Hero */
 .hero { background: var(--color-ivory); overflow: hidden; padding: 5.5rem 0 5rem; position: relative; }
