@@ -4,6 +4,30 @@ const ATTENDANCE_API_URL = 'https://script.google.com/macros/s/AKfycbwDfRTppas7K
 const ORGANIZER_SESSION_KEY = 'socalOrganizerSession';
 const ORGANIZER_SESSION_SECONDS = 1800;
 
+function clearPrivateReportData() {
+    const details = document.querySelector('#registration-details-list');
+    const tableBody = document.querySelector('#report-table-body');
+    const reportMessage = document.querySelector('#organizer-report-message');
+
+    details?.replaceChildren();
+    tableBody?.replaceChildren();
+    setOrganizerMessage(reportMessage, '', '');
+
+    ['#report-registrations', '#report-attendees', '#report-churches'].forEach((selector) => {
+        const summaryValue = document.querySelector(selector);
+        if (summaryValue) {
+            summaryValue.textContent = '\u2014';
+        }
+    });
+}
+
+function createSubmissionId() {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+        return window.crypto.randomUUID();
+    }
+    return `submission-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 function isValidAttendanceTotal(value) {
     return Number.isFinite(value) && value >= 0;
 }
@@ -98,7 +122,7 @@ function isValidReport(data) {
         Number.isFinite(data.summary.registrations) &&
         Number.isFinite(data.summary.attendees) &&
         Number.isFinite(data.summary.churches) &&
-        Array.isArray(data.groups);
+        Array.isArray(data.groups) && Array.isArray(data.registrations);
 }
 
 function renderOrganizerReport(data) {
@@ -126,6 +150,66 @@ function renderOrganizerReport(data) {
         row.append(nameCell, registrationCell, attendeeCell);
         tableBody.append(row);
     });
+
+    const details = document.querySelector('#registration-details-list');
+    if (!details) {
+        return;
+    }
+    details.replaceChildren();
+    (Array.isArray(data.registrations) ? data.registrations : []).forEach((registration) => {
+        const card = document.createElement('article');
+        card.className = 'registration-card';
+        const heading = document.createElement('h4');
+        heading.textContent = registration.fullName || 'Unnamed registrant';
+        const church = document.createElement('p');
+        church.className = 'registration-card-church';
+        church.textContent = registration.church || 'Unspecified';
+        card.append(heading, church);
+        appendReportLink(card, 'Phone', registration.phone, 'tel:');
+        appendReportLink(card, 'Email', registration.email, 'mailto:');
+        appendReportValue(card, 'Number of Guests', registration.guestCount);
+        appendReportValue(card, 'Total Attendees', registration.totalAttendees);
+        appendReportValue(card, 'Source', registration.source === 'legacy' ? 'Legacy Google Form' : 'Website RSVP');
+        const guests = document.createElement('div');
+        guests.className = 'registration-card-guests';
+        const guestLabel = document.createElement('strong');
+        guestLabel.textContent = 'Guest Names';
+        guests.append(guestLabel);
+        if (Array.isArray(registration.guestNames) && registration.guestNames.length) {
+            const list = document.createElement('ol');
+            registration.guestNames.forEach((name) => {
+                const item = document.createElement('li');
+                item.textContent = name;
+                list.append(item);
+            });
+            guests.append(list);
+        } else {
+            const empty = document.createElement('p');
+            empty.textContent = 'Not collected on legacy registration';
+            guests.append(empty);
+        }
+        card.append(guests);
+        details.append(card);
+    });
+}
+
+function appendReportValue(parent, label, value) {
+    const row = document.createElement('p');
+    const labelElement = document.createElement('strong');
+    labelElement.textContent = `${label}: `;
+    row.append(labelElement, document.createTextNode(String(value ?? '')));
+    parent.append(row);
+}
+
+function appendReportLink(parent, label, value, scheme) {
+    const row = document.createElement('p');
+    const labelElement = document.createElement('strong');
+    labelElement.textContent = `${label}: `;
+    const link = document.createElement('a');
+    link.textContent = String(value || '');
+    link.href = `${scheme}${encodeURIComponent(String(value || ''))}`;
+    row.append(labelElement, link);
+    parent.append(row);
 }
 
 async function loadOrganizerReport(message) {
@@ -134,6 +218,7 @@ async function loadOrganizerReport(message) {
     const refreshButton = document.querySelector('#organizer-refresh');
 
     if (!token) {
+        clearPrivateReportData();
         showOrganizerLogin(message || 'Your organizer session has expired. Please sign in again.');
         return false;
     }
@@ -148,6 +233,7 @@ async function loadOrganizerReport(message) {
         const data = await postOrganizerAction({ action: 'report', token });
         if (data.code === 'UNAUTHORIZED') {
             sessionStorage.removeItem(ORGANIZER_SESSION_KEY);
+            clearPrivateReportData();
             showOrganizerLogin('Your organizer session has expired. Please sign in again.');
             return false;
         }
@@ -203,17 +289,18 @@ async function handleOrganizerLogin(event) {
 
 async function handleOrganizerLogout() {
     const token = sessionStorage.getItem(ORGANIZER_SESSION_KEY);
-    sessionStorage.removeItem(ORGANIZER_SESSION_KEY);
 
-    if (token) {
-        try {
+    try {
+        if (token) {
             await postOrganizerAction({ action: 'logout', token });
-        } catch (error) {
-            console.warn('Organizer session could not be closed on the server.');
         }
+    } catch (error) {
+        console.warn('Organizer session could not be closed on the server.');
+    } finally {
+        sessionStorage.removeItem(ORGANIZER_SESSION_KEY);
+        clearPrivateReportData();
+        showOrganizerLogin('You have been signed out.');
     }
-
-    showOrganizerLogin('You have been signed out.');
 }
 
 function setupOrganizerAccess() {
@@ -262,6 +349,138 @@ function setupOrganizerAccess() {
     }
 }
 
+function renderGuestFields(guestCount) {
+    const guestFields = document.querySelector('#guest-fields');
+    if (!guestFields) {
+        return;
+    }
+    const existingNames = Array.from(guestFields.querySelectorAll('input')).map((input) => input.value);
+    guestFields.replaceChildren();
+    for (let index = 0; index < guestCount; index += 1) {
+        const label = document.createElement('label');
+        const input = document.createElement('input');
+        label.textContent = `Guest ${index + 1} Full Name *`;
+        label.htmlFor = `guest-${index + 1}`;
+        input.id = `guest-${index + 1}`;
+        input.name = `guest${index + 1}`;
+        input.type = 'text';
+        input.autocomplete = 'off';
+        input.maxLength = 120;
+        input.required = true;
+        input.value = existingNames[index] || '';
+        guestFields.append(label, input);
+    }
+}
+
+function collectRegistrationFormData(form) {
+    const formData = new FormData(form);
+    const guestCount = Number(formData.get('guestCount'));
+    const parameters = {
+        action: 'register',
+        submissionId: createSubmissionId(),
+        fullName: String(formData.get('fullName') || '').trim(),
+        phone: String(formData.get('phone') || '').trim(),
+        email: String(formData.get('email') || '').trim(),
+        church: String(formData.get('church') || '').trim(),
+        guestCount: String(guestCount),
+        website: String(formData.get('website') || '')
+    };
+    for (let index = 1; index <= guestCount; index += 1) {
+        parameters[`guest${index}`] = String(formData.get(`guest${index}`) || '').trim();
+    }
+    return parameters;
+}
+
+function validateRegistrationForm(form) {
+    const invalidField = form.querySelector(':invalid');
+    if (invalidField) {
+        invalidField.focus();
+        return false;
+    }
+    return true;
+}
+
+function renderRegistrationSuccess(fullName, totalAttendees) {
+    const form = document.querySelector('#rsvp-form');
+    const success = document.querySelector('#registration-success');
+    const message = document.querySelector('#success-message');
+    if (!form || !success || !message) {
+        return;
+    }
+    form.hidden = true;
+    message.textContent = `Thank you, ${fullName}. Your registration has been received. Total attending: ${totalAttendees}. We look forward to seeing you on Thursday, October 8.`;
+    success.hidden = false;
+    success.focus();
+}
+
+function resetRegistrationForm() {
+    const form = document.querySelector('#rsvp-form');
+    const success = document.querySelector('#registration-success');
+    const guestCount = document.querySelector('#guest-count');
+    if (!form || !success || !guestCount) {
+        return;
+    }
+    form.reset();
+    guestCount.value = '0';
+    renderGuestFields(0);
+    form.hidden = false;
+    success.hidden = true;
+    document.querySelector('#full-name').focus();
+}
+
+async function handleRegistrationSubmit(event) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const submitButton = document.querySelector('#rsvp-submit');
+    const status = document.querySelector('#rsvp-status');
+    if (!validateRegistrationForm(form)) {
+        status.textContent = 'Please complete the highlighted fields.';
+        status.className = 'form-status is-error';
+        return;
+    }
+    submitButton.disabled = true;
+    submitButton.textContent = 'Submitting...';
+    status.textContent = 'Submitting your registration...';
+    status.className = 'form-status is-loading';
+    try {
+        const parameters = collectRegistrationFormData(form);
+        const response = await fetch(ATTENDANCE_API_URL, { method: 'POST', body: new URLSearchParams(parameters) });
+        const data = await response.json();
+        if (!response.ok || data.status !== 'ok' || !data.registration) {
+            throw new Error(data.code || 'Registration failed.');
+        }
+        renderRegistrationSuccess(parameters.fullName, data.registration.totalAttendees);
+        loadAttendanceStats();
+    } catch (error) {
+        status.textContent = error.message === 'REGISTRATION_CLOSED'
+            ? 'Registration is now closed.'
+            : 'We could not submit your registration. Please try again.';
+        status.className = 'form-status is-error';
+        submitButton.disabled = false;
+        submitButton.textContent = 'Submit Registration';
+    }
+}
+
+function setupRegistrationForm() {
+    const form = document.querySelector('#rsvp-form');
+    const guestCount = document.querySelector('#guest-count');
+    const anotherButton = document.querySelector('#register-another');
+    if (!form || !guestCount) {
+        return;
+    }
+    for (let count = 0; count <= 10; count += 1) {
+        const option = document.createElement('option');
+        option.value = String(count);
+        option.textContent = String(count);
+        guestCount.append(option);
+    }
+    guestCount.value = '0';
+    renderGuestFields(0);
+    guestCount.addEventListener('change', () => renderGuestFields(Number(guestCount.value)));
+    form.addEventListener('submit', handleRegistrationSubmit);
+    anotherButton.addEventListener('click', resetRegistrationForm);
+}
+
 function updateRegistrationState() {
     const isClosed = new Date() >= REGISTRATION_CLOSE_DATE;
     const formShell = document.querySelector('#form-shell');
@@ -287,5 +506,6 @@ function updateRegistrationState() {
 document.addEventListener('DOMContentLoaded', () => {
     updateRegistrationState();
     loadAttendanceStats();
+    setupRegistrationForm();
     setupOrganizerAccess();
 });

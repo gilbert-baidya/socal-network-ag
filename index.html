@@ -120,7 +120,34 @@
                     <p class="attendance-summary" id="attendance-summary" aria-live="polite"><span id="attendance-count">&mdash;</span> guests registered <span aria-hidden="true">&bull;</span> <span id="attendance-status">Live registration total coming soon</span></p>
                 </div>
                 <div class="form-shell" id="form-shell">
-                    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSc9kzkzCOp3LEGZWpIb0BVPupW4dOy9AYtQWPXR6BqsrwkAlQ/viewform?embedded=true" title="Annual Intercultural Pastors Appreciation Dinner RSVP" loading="lazy"></iframe>
+                    <form class="rsvp-form" id="rsvp-form" novalidate>
+                        <div class="form-section">
+                            <p class="form-section-title">Your information</p>
+                            <label for="full-name">Full Name</label>
+                            <input id="full-name" name="fullName" type="text" autocomplete="name" maxlength="120" required>
+                            <label for="phone-number">Phone Number</label>
+                            <input id="phone-number" name="phone" type="tel" autocomplete="tel" maxlength="40" required>
+                            <label for="email-address">Email Address</label>
+                            <input id="email-address" name="email" type="email" autocomplete="email" maxlength="160" required>
+                            <label for="church">Church or Organization</label>
+                            <input id="church" name="church" type="text" autocomplete="organization" maxlength="160" required>
+                        </div>
+                        <div class="form-section">
+                            <label for="guest-count">Number of Guests</label>
+                            <p class="field-help" id="guest-count-help">Do not include yourself.</p>
+                            <select id="guest-count" name="guestCount" aria-describedby="guest-count-help" required></select>
+                            <div id="guest-fields" class="guest-fields" aria-live="polite"></div>
+                        </div>
+                        <input class="honeypot" name="website" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
+                        <p class="form-status" id="rsvp-status" aria-live="polite"></p>
+                        <button class="button button-primary submit-button" id="rsvp-submit" type="submit">Submit Registration</button>
+                    </form>
+                    <section class="registration-success" id="registration-success" tabindex="-1" hidden aria-labelledby="success-title">
+                        <span class="closed-mark" aria-hidden="true">&mdash;</span>
+                        <h3 id="success-title">Registration Received</h3>
+                        <p id="success-message"></p>
+                        <button class="button button-primary" id="register-another" type="button">Register Another Person</button>
+                    </section>
                 </div>
                 <div class="registration-closed" id="registration-closed" hidden>
                     <span class="closed-mark" aria-hidden="true">&mdash;</span>
@@ -156,18 +183,22 @@
                     <p class="organizer-message" id="organizer-report-message" aria-live="polite"></p>
                     <div class="report-summary" aria-label="Registration summary">
                         <div><span>Total Registrations</span><strong id="report-registrations">&mdash;</strong></div>
-                        <div><span>Guests</span><strong id="report-attendees">&mdash;</strong></div>
+                        <div><span>Total Attendees</span><strong id="report-attendees">&mdash;</strong></div>
                         <div><span>Churches Represented</span><strong id="report-churches">&mdash;</strong></div>
                     </div>
                     <div class="report-table-wrap">
                         <table class="report-table">
                             <caption>Registration totals by church or organization</caption>
                             <thead>
-                                <tr><th scope="col">Church / Organization</th><th scope="col">Registrations</th><th scope="col">Guests</th></tr>
+                                <tr><th scope="col">Church / Organization</th><th scope="col">Registrations</th><th scope="col">Total Attendees</th></tr>
                             </thead>
                             <tbody id="report-table-body"></tbody>
                         </table>
                     </div>
+                    <section class="registration-details" aria-labelledby="registration-details-title">
+                        <h3 id="registration-details-title">Registration Details</h3>
+                        <div id="registration-details-list"></div>
+                    </section>
                     <div class="report-actions">
                         <button class="button button-quiet" id="organizer-refresh" type="button">Refresh Report</button>
                         <button class="button button-dark" id="organizer-logout" type="button">Log Out</button>
