@@ -428,8 +428,7 @@ async function handleManageLinkRequest(event) {
             method: 'POST',
             body: new URLSearchParams({
                 action: 'requestManageLink',
-                email,
-                manageBaseUrl: window.location.origin + window.location.pathname
+                email
             })
         });
         const data = await response.json();

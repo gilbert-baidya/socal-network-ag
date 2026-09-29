@@ -5,6 +5,7 @@ const ORGANIZER_SESSION_PREFIX = 'organizer_session_';
 const ORGANIZER_SESSION_SECONDS = 1800;
 const REGISTRATION_CLOSE_DATE = '2026-10-06';
 const EVENT_TIME_ZONE = 'America/Los_Angeles';
+const PRODUCTION_MANAGEMENT_BASE_URL = 'https://gilbert-baidya.github.io/socal-network-ag/';
 const RESPONSE_HEADERS = [
   'Timestamp',
   'Full Name',
@@ -191,11 +192,23 @@ function createManageToken_() {
   return { raw: rawToken, hash: hashPassword_(rawToken) };
 }
 
-function getManagementUrl_(rawToken, requestedBaseUrl) {
-  const configuredBaseUrl = PropertiesService.getScriptProperties().getProperty('MANAGEMENT_BASE_URL');
-  const baseUrl = normalizeText_(configuredBaseUrl || requestedBaseUrl, 500);
-  if (!/^https:\/\//i.test(baseUrl)) return '';
-  return baseUrl.replace(/[?#].*$/, '') + '?manage=' + encodeURIComponent(rawToken);
+function ensureProductionConfiguration_() {
+  const properties = PropertiesService.getScriptProperties();
+  let configuredBaseUrl = properties.getProperty('MANAGEMENT_BASE_URL');
+  if (!configuredBaseUrl) {
+    properties.setProperty('MANAGEMENT_BASE_URL', PRODUCTION_MANAGEMENT_BASE_URL);
+    configuredBaseUrl = PRODUCTION_MANAGEMENT_BASE_URL;
+  }
+  if (configuredBaseUrl !== PRODUCTION_MANAGEMENT_BASE_URL) {
+    throw new Error('Invalid MANAGEMENT_BASE_URL configuration');
+  }
+  return configuredBaseUrl;
+}
+
+function getManagementUrl_(rawToken) {
+  const baseUrl = ensureProductionConfiguration_();
+  const baseUrlWithoutQueryOrHash = baseUrl.replace(/[?#].*$/, '');
+  return baseUrlWithoutQueryOrHash + '?manage=' + encodeURIComponent(rawToken);
 }
 
 function ensureChangeLogSheet_() {
@@ -261,6 +274,7 @@ function handleManageLinkRequest_(parameters) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return jsonResponse({ status: 'error', code: 'VALIDATION_ERROR' });
   }
+  ensureProductionConfiguration_();
   const sheet = ensureWebsiteRegistrationsSheet_();
   const data = getSheetData_(WEBSITE_SHEET_NAME);
   const matches = findWebsiteRowsByEmail_(sheet, data.columns, email);
@@ -270,7 +284,7 @@ function handleManageLinkRequest_(parameters) {
     sheet.getRange(match.rowNumber, data.columns['Manage Token Hash'] + 1).setValue(token.hash);
     const date = match.row[data.columns['Timestamp']] || '';
     const church = normalizeText_(match.row[data.columns['Church or Organization']], 160) || 'Unspecified organization';
-    const url = getManagementUrl_(token.raw, parameters.manageBaseUrl);
+    const url = getManagementUrl_(token.raw);
     if (url) links.push(church + ' | ' + date + '\n' + url);
   });
   if (links.length) sendManagementEmail_(email, links);
