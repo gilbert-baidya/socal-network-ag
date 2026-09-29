@@ -187,6 +187,42 @@ function normalizePhone_(value) {
   return normalizeText_(value, 40).replace(/[^\d+]/g, '');
 }
 
+function normalizeAttendeeName_(value) {
+  const normalized = normalizeText_(value, 120);
+  return typeof normalized.normalize === 'function'
+    ? normalized.normalize('NFKC').toLowerCase()
+    : normalized.toLowerCase();
+}
+
+function getExistingAttendeeNames_(sheet, columns, email) {
+  const emailColumn = columns['Email Address'];
+  if (emailColumn === undefined || sheet.getLastRow() < 2) return [];
+  const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+  const normalizedEmail = normalizeEmail_(email);
+  const existingNames = [];
+  rows.forEach((row) => {
+    if (normalizeEmail_(row[emailColumn]) !== normalizedEmail) return;
+    for (let index = 1; index <= 10; index += 1) {
+      const attendeeColumn = columns['Attendee ' + index];
+      if (attendeeColumn === undefined) continue;
+      const normalizedName = normalizeAttendeeName_(row[attendeeColumn]);
+      if (normalizedName) existingNames.push(normalizedName);
+    }
+  });
+  return existingNames;
+}
+
+function hasDuplicateAttendeeName_(attendeeNames, existingNames) {
+  const seenNames = new Set(existingNames);
+  for (let index = 0; index < attendeeNames.length; index += 1) {
+    const normalizedName = normalizeAttendeeName_(attendeeNames[index]);
+    if (!normalizedName) continue;
+    if (seenNames.has(normalizedName)) return true;
+    seenNames.add(normalizedName);
+  }
+  return false;
+}
+
 function createManageToken_() {
   const rawToken = Utilities.getUuid() + '-' + Utilities.getUuid() + '-' + Utilities.getUuid();
   return { raw: rawToken, hash: hashPassword_(rawToken) };
@@ -389,6 +425,9 @@ function validateRegistrationParameters_(parameters) {
     if (!attendeeName || containsMarkup_(attendeeName)) return null;
     attendeeNames.push(attendeeName);
   }
+  for (let index = numberAttending + 1; index <= 10; index += 1) {
+    if (normalizeText_(parameters['attendee' + index], 120)) return null;
+  }
   return { fields: fields, numberAttending: numberAttending, attendeeNames: attendeeNames };
 }
 
@@ -397,17 +436,6 @@ function findSubmissionId_(sheet, columns, submissionId) {
   if (idColumn === undefined || sheet.getLastRow() < 2) return false;
   const ids = sheet.getRange(2, idColumn + 1, sheet.getLastRow() - 1, 1).getValues();
   return ids.some((row) => String(row[0]).trim() === submissionId);
-}
-
-function hasExistingContact_(sheet, columns, email, phone) {
-  const emailColumn = columns['Email Address'];
-  const phoneColumn = columns['Phone Number'];
-  if (emailColumn === undefined || phoneColumn === undefined || sheet.getLastRow() < 2) return false;
-  const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
-  const normalizedEmail = normalizeEmail_(email);
-  const normalizedPhone = normalizePhone_(phone);
-  return rows.some((row) => normalizeEmail_(row[emailColumn]) === normalizedEmail &&
-    normalizePhone_(row[phoneColumn]) === normalizedPhone);
 }
 
 function handleWebsiteRegistration_(parameters) {
@@ -423,8 +451,9 @@ function handleWebsiteRegistration_(parameters) {
     if (findSubmissionId_(sheet, data.columns, validated.fields.submissionId)) {
       return jsonResponse({ status: 'ok', code: 'DUPLICATE_SUBMISSION', registration: { totalAttendees: validated.numberAttending } });
     }
-    if (hasExistingContact_(sheet, data.columns, validated.fields.email, validated.fields.phone)) {
-      return jsonResponse({ status: 'error', code: 'EXISTING_REGISTRATION' });
+    if (hasDuplicateAttendeeName_(validated.attendeeNames,
+      getExistingAttendeeNames_(sheet, data.columns, validated.fields.email))) {
+      return jsonResponse({ status: 'error', code: 'DUPLICATE_ATTENDEE_NAME' });
     }
     const row = WEBSITE_HEADERS.map((header) => {
       if (header === 'Timestamp') return new Date();

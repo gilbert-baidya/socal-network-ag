@@ -127,7 +127,7 @@
                     <form class="rsvp-form" id="rsvp-form" novalidate>
                         <div class="form-section">
                             <p class="form-section-title">Your information</p>
-                            <label for="full-name">Full Name</label>
+                            <label for="full-name">Contact Name</label>
                             <input id="full-name" name="fullName" type="text" autocomplete="name" maxlength="120" required>
                             <label for="phone-number">Phone Number</label>
                             <input id="phone-number" name="phone" type="tel" autocomplete="tel" maxlength="40" required>
@@ -138,7 +138,7 @@
                         </div>
                         <div class="form-section">
                             <label for="attendee-count">Number Attending</label>
-                            <p class="field-help" id="attendee-count-help">Including yourself.</p>
+                            <p class="field-help" id="attendee-count-help">Number of people being registered in this submission.</p>
                             <select id="attendee-count" name="numberAttending" aria-describedby="attendee-count-help" required></select>
                             <div id="attendee-fields" class="attendee-fields" aria-live="polite"></div>
                         </div>
@@ -150,6 +150,10 @@
                         <span class="closed-mark" aria-hidden="true">&mdash;</span>
                         <h3 id="success-title">Registration Received</h3>
                         <p id="success-message"></p>
+                        <div class="success-attendees" id="success-attendees" hidden>
+                            <strong id="success-attendees-title"></strong>
+                            <ol id="success-attendee-list"></ol>
+                        </div>
                         <button class="button button-primary" id="register-another" type="button">Register Another Person</button>
                     </section>
                 </div>

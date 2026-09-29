@@ -156,6 +156,10 @@ h3 { font-size: 2rem; }
 .submit-button:disabled { cursor: wait; opacity: .65; }
 .registration-success { background: var(--color-paper); padding: 4rem 1.5rem; text-align: center; }
 .registration-success p { color: var(--color-muted); margin: 0 auto 1.5rem; max-width: 520px; }
+.success-attendees { margin: 1.5rem auto; max-width: 520px; text-align: left; }
+.success-attendees strong { color: var(--color-brown); display: block; font-size: .82rem; letter-spacing: .08em; text-transform: uppercase; }
+.success-attendees ol { color: var(--color-muted); margin: .6rem 0 0 1.25rem; padding: 0; }
+.success-attendees li { margin: .25rem 0; overflow-wrap: anywhere; }
 .registration-closed { padding: 4rem 1.5rem; text-align: center; }
 .closed-mark { color: var(--color-bronze); display: block; font-family: var(--serif); font-size: 2.5rem; line-height: 1; }
 .registration-closed h3 { color: var(--color-brown); margin-bottom: .7rem; }

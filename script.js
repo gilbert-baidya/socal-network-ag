@@ -490,17 +490,33 @@ function validateRegistrationForm(form) {
     return true;
 }
 
-function renderRegistrationSuccess(fullName, totalAttendees) {
+function getAttendeeNamesFromParameters(parameters) {
+    const numberAttending = Number(parameters.numberAttending);
+    return Array.from({ length: numberAttending }, (_, index) => parameters[`attendee${index + 1}`]);
+}
+
+function renderRegistrationSuccess(fullName, totalAttendees, attendeeNames) {
     const form = document.querySelector('#rsvp-form');
     const success = document.querySelector('#registration-success');
     const message = document.querySelector('#success-message');
-    if (!form || !success || !message) {
+    const attendeeSummary = document.querySelector('#success-attendees');
+    const attendeeTitle = document.querySelector('#success-attendees-title');
+    const attendeeList = document.querySelector('#success-attendee-list');
+    if (!form || !success || !message || !attendeeSummary || !attendeeTitle || !attendeeList) {
         return;
     }
     form.hidden = true;
     message.textContent = manageMode
         ? `Thank you, ${fullName}. Your registration has been updated. Total attending: ${totalAttendees}.`
         : `Thank you, ${fullName}. Your registration has been received. Total attending: ${totalAttendees}. We look forward to seeing you on Thursday, October 8.`;
+    attendeeList.replaceChildren();
+    attendeeNames.forEach((name) => {
+        const item = document.createElement('li');
+        item.textContent = name;
+        attendeeList.append(item);
+    });
+    attendeeTitle.textContent = `Registered Attendees — ${attendeeNames.length}`;
+    attendeeSummary.hidden = attendeeNames.length === 0;
     success.hidden = false;
     success.focus();
 }
@@ -519,7 +535,8 @@ function resetRegistrationForm() {
     document.querySelector('#rsvp-submit').textContent = 'Submit Registration';
     attendeeCount.value = '1';
     renderAttendeeFields(1);
-    form.dispatchEvent(new CustomEvent('registrationreset'));
+    document.querySelector('#success-attendee-list').replaceChildren();
+    document.querySelector('#success-attendees').hidden = true;
     form.hidden = false;
     success.hidden = true;
     document.querySelector('#full-name').focus();
@@ -546,12 +563,16 @@ async function handleRegistrationSubmit(event) {
         if (!response.ok || data.status !== 'ok' || !data.registration) {
             throw new Error(data.code || 'Registration failed.');
         }
-        renderRegistrationSuccess(parameters.fullName, data.registration.totalAttendees);
+        renderRegistrationSuccess(
+            parameters.fullName,
+            data.registration.totalAttendees,
+            getAttendeeNamesFromParameters(parameters)
+        );
         loadAttendanceStats();
     } catch (error) {
         const messages = {
             REGISTRATION_CLOSED: 'Registration changes are now closed.',
-            EXISTING_REGISTRATION: 'A registration already exists for this contact. Use Manage Registration to make changes.',
+            DUPLICATE_ATTENDEE_NAME: 'One or more attendee names are already registered under this email address. Please enter only new attendees or use Manage Registration to update an existing registration.',
             VALIDATION_ERROR: 'Please review the highlighted information.',
             INVALID_MANAGE_TOKEN: 'This management link is invalid or has expired.'
         };
@@ -577,29 +598,7 @@ function setupRegistrationForm() {
     }
     attendeeCount.value = '1';
     renderAttendeeFields(1);
-    const fullName = document.querySelector('#full-name');
-    let attendeeOneWasEdited = false;
-    const syncAttendeeOne = () => {
-        const attendeeOne = document.querySelector('#attendee-1');
-        if (attendeeOne && !attendeeOneWasEdited) {
-            attendeeOne.value = fullName.value;
-        }
-    };
-    attendeeCount.addEventListener('change', () => {
-        renderAttendeeFields(Number(attendeeCount.value));
-        syncAttendeeOne();
-    });
-    fullName.addEventListener('input', syncAttendeeOne);
-    document.querySelector('#attendee-fields').addEventListener('input', (event) => {
-        if (event.target.id === 'attendee-1') {
-            attendeeOneWasEdited = true;
-        }
-    });
-    form.addEventListener('registrationreset', () => {
-        attendeeOneWasEdited = false;
-        syncAttendeeOne();
-    });
-    syncAttendeeOne();
+    attendeeCount.addEventListener('change', () => renderAttendeeFields(Number(attendeeCount.value)));
     form.addEventListener('submit', handleRegistrationSubmit);
     anotherButton.addEventListener('click', resetRegistrationForm);
 }

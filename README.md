@@ -28,7 +28,7 @@ The legacy path remains unchanged:
 
 Apps Script creates `Website Registrations` automatically when a registration, private report, or dashboard refresh needs it. It adds missing expected headers at the end and never deletes or reorders existing rows. No manual sheet setup is required.
 
-Number Attending is the total party size, including the primary registrant. Total Attendees equals Number Attending. Website registrations support 1 through 10 required attendee names. Update history is written to the private `Registration Change Log` sheet, which Apps Script creates automatically.
+Number Attending is the number of people being registered in that submission; the contact person is not counted automatically. Total Attendees equals Number Attending. Website registrations support 1 through 10 required attendee names, and the same contact may submit additional groups as separate rows when the attendee names are new for that email address. Update history is written to the private `Registration Change Log` sheet, which Apps Script creates automatically.
 
 ## Public and private reports
 
