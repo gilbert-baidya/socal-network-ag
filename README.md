@@ -15,13 +15,20 @@ The primary path is:
 
 `Website RSVP -> Apps Script action=register -> Website Registrations`
 
+Registered people can use the `Manage Registration` control to request a one-time
+management link by email. Apps Script stores only a SHA-256 token hash, loads the
+matching Website Registrations row, and updates that same row through
+`action=updateRegistration`. The original Timestamp and Submission ID are
+preserved. Management requests and updates never expose registration data through
+the public GET endpoint.
+
 The legacy path remains unchanged:
 
 `Google Form -> Form Responses 1`
 
 Apps Script creates `Website Registrations` automatically when a registration, private report, or dashboard refresh needs it. It adds missing expected headers at the end and never deletes or reorders existing rows. No manual sheet setup is required.
 
-Number of Guests means additional guests and excludes the primary registrant. Total Attendees is always `1 + Number of Guests`. Website registrations support 0 through 10 required guest names.
+Number Attending is the total party size, including the primary registrant. Total Attendees equals Number Attending. Website registrations support 1 through 10 required attendee names. Update history is written to the private `Registration Change Log` sheet, which Apps Script creates automatically.
 
 ## Public and private reports
 
@@ -35,11 +42,11 @@ The public GET endpoint keeps the existing aggregate contract:
 }
 ```
 
-It combines legacy `Number Attending` totals with new website `Total Attendees` totals and returns no names, contact details, churches, timestamps, or guest names.
+It combines legacy and website `Number Attending` totals and returns no names, contact details, churches, timestamps, or attendee names.
 
-The Registration Report button in the top-right header uses the existing server-side organizer authentication. It requires the existing 30-minute Script Cache session and returns detailed contact and guest data only after authentication. The browser keeps only the temporary session token in `sessionStorage`; registration data is not stored in local storage.
+The Registration Report button in the top-right header uses the existing server-side organizer authentication. It requires the existing 30-minute Script Cache session and returns detailed contact and attendee data only after authentication. The browser keeps only the temporary session token in `sessionStorage`; registration data is not stored in local storage.
 
-Legacy records are marked `Legacy Google Form` and show `Not collected on legacy registration` for guest names. Church summaries group trimmed names case-insensitively and use `Unspecified` for blank organizations.
+Legacy records are marked `Legacy Google Form` and show `Not collected on legacy registration` for attendee names. Church summaries group trimmed names case-insensitively and use `Unspecified` for blank organizations.
 
 ## Deadline and security
 

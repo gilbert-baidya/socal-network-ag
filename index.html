@@ -118,6 +118,10 @@
                     <p>We would be honored to have you join us.</p>
                     <p class="form-note">All registration fields are required.<br>Registration closes October 5, 2026.</p>
                     <p class="attendance-summary" id="attendance-summary" aria-live="polite"><span id="attendance-count">&mdash;</span> guests registered <span aria-hidden="true">&bull;</span> <span id="attendance-status">Live registration total coming soon</span></p>
+                    <div class="manage-prompt">
+                        <span>Already registered?</span>
+                        <button class="button button-quiet" id="manage-registration-open" type="button">Manage Registration</button>
+                    </div>
                 </div>
                 <div class="form-shell" id="form-shell">
                     <form class="rsvp-form" id="rsvp-form" novalidate>
@@ -133,10 +137,10 @@
                             <input id="church" name="church" type="text" autocomplete="organization" maxlength="160" required>
                         </div>
                         <div class="form-section">
-                            <label for="guest-count">Number of Guests</label>
-                            <p class="field-help" id="guest-count-help">Do not include yourself.</p>
-                            <select id="guest-count" name="guestCount" aria-describedby="guest-count-help" required></select>
-                            <div id="guest-fields" class="guest-fields" aria-live="polite"></div>
+                            <label for="attendee-count">Number Attending</label>
+                            <p class="field-help" id="attendee-count-help">Including yourself.</p>
+                            <select id="attendee-count" name="numberAttending" aria-describedby="attendee-count-help" required></select>
+                            <div id="attendee-fields" class="attendee-fields" aria-live="polite"></div>
                         </div>
                         <input class="honeypot" name="website" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
                         <p class="form-status" id="rsvp-status" aria-live="polite"></p>
@@ -156,6 +160,21 @@
                 </div>
             </div>
         </section>
+
+        <dialog class="organizer-dialog manage-dialog" id="manage-dialog" aria-labelledby="manage-dialog-title">
+            <div class="organizer-dialog-inner">
+                <button class="dialog-close" id="manage-dialog-close" type="button" aria-label="Close manage registration">&times;</button>
+                <p class="section-kicker">Existing RSVP</p>
+                <h2 id="manage-dialog-title">Manage Your Registration</h2>
+                <p>Enter the email address used when registering. If a registration exists, we will send a secure management link.</p>
+                <form class="organizer-form" id="manage-link-form">
+                    <label for="manage-email">Email Address</label>
+                    <input id="manage-email" name="email" type="email" autocomplete="email" maxlength="160" required>
+                    <p class="organizer-message" id="manage-link-message" aria-live="polite"></p>
+                    <button class="button button-primary" id="manage-link-submit" type="submit">Send Management Link</button>
+                </form>
+            </div>
+        </dialog>
 
         <dialog class="organizer-dialog" id="organizer-dialog" aria-labelledby="organizer-dialog-title">
             <div class="organizer-dialog-inner">
